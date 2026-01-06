@@ -6,6 +6,7 @@ require 'json'
 require 'uri'
 
 URL_BASE = 'https://hvyypnaecf.execute-api.ap-northeast-1.amazonaws.com/latest'
+ENV['SSL_CERT_FILE'] = OpenSSL::X509::DEFAULT_CERT_FILE
 
 @browser = Ferrum::Browser.new(base_url: 'https://genesis2.genelife.jp', timeout: 60, headless: false)
 
@@ -19,7 +20,10 @@ end
 
 def get_by_json(params)
   uri = URI.parse("#{URL_BASE}?#{params}")
-  json = Net::HTTP.get(uri)
+  http = Net::HTTP.new(uri.host, uri.port)
+  http.use_ssl = true
+  http.verify_mode = OpenSSL::SSL::VERIFY_NONE  # ← 無効化
+  json = http.get(uri.request_uri).body
   JSON.parse(json)
 end
 
